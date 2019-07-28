@@ -93,7 +93,23 @@ io.on('connection', (socket) => {
       }
     });
   });
-      // check if game should start
+
+  // helper function to send the next action request
+  function sendNextRequest(room) {
+    action = room.getActionRequest();
+    console.log(action);
+    clientSocket = io.sockets.connected[room.getClientId(action.player)];
+    clientSocket.emit(action.type, action.options);
+    var actionName = '';
+    if (action.type === 'requestBid') {
+      actionName = 'bid';
+    } else if (action.type === 'requestPlay') {
+      actionName = 'play';
+    }
+    clientSocket.broadcast.to(clientSocket.room).emit('waiting', {player: action.player, type: actionName});
+  }
+
+  // check if game should start
   socket.on('gameStart', function(data) {
 
     console.log('client game start');
@@ -110,43 +126,45 @@ io.on('connection', (socket) => {
                                    trumpSuit: room.getTrumpSuit(),
                                    players: players})
       })
-      action = room.getActionRequest();
-      clientSocket = io.sockets.connected[room.getClientId(action.player)];
-      clientSocket.emit(action.type, action.options);
+      sendNextRequest(room);
     }
-    // userToSocketId = {};
-    // order = [];
-    // numCards = 1;
-    // var clients = Object.keys(io.sockets.adapter.rooms[data.gameid].sockets);
-
-    // if (currentNumPlayers === maxNumPlayers) {
-    //   var trump = gameutil.pickTrump();
-    //   var hands = gameutil.deal(currentNumPlayers, numCards);
-    //   for (i = 0; i < clients.length; i++) {
-    //     var clientId = clients[i];
-    //     var clientSocket = io.sockets.connected[clientId];
-    //     userToSocketId[clientSocket.username] = clientId;
-    //     order.push(clientSocket.username);
-
-    //     clientSocket.emit('deal', {hand: hands[i], trump: trump});
-    // }
-    // room = {level:1, numPlayers:order.length, scores:[0]*order.length, currentTrick: [], bids: [], order:order, userToSocketId:userToSocketId}
-    // rooms[gameid] = room
-
-    // firstSocket = io.sockets.connected[userToSocketId[order[0]]];
-    // firstSocket.emit('requestBid', {options: [...Array(room.level+1).keys()]})
-    // console.log('requested from ' + order[0])
-    // }
   });
+
+
   socket.on('bid', function(data) {
     room = rooms[socket.room];
 
     responses = room.receiveAction({type:'bid', player:socket.username, value:data});
     responses.forEach(function(item, index) {
-      io.in(socket.room).emit(item.type, item.data);
+      console.log('response')
+      console.log(item)
+      io.in(socket.room).emit(item.type, {player:item.player, value: item.value});
     })
+
+    sendNextRequest(room);
   })
     
+  socket.on('play', function(data) {
+    room = rooms[socket.room];
+
+    responses = room.receiveAction({type:'play', player:socket.username, value:data});
+
+    console.log('responses');
+    console.log(responses);
+
+    // responses.length should be max length 2
+    responses.forEach(function(item, index) {
+      io.in(socket.room).emit(item.type, {player:item.player, value: item.value});
+    })
+
+    if (responses.length > 1) {
+      setTimeout(function() {
+        sendNextRequest(room);
+      }, 3000);
+    } else {
+      sendNextRequest(room);
+    }
+  })
 
     // socket.emit('joinSuccess', usernames);
 
@@ -187,37 +205,6 @@ io.on('connection', (socket) => {
   socket.on('message', function(data) {
     console.log(socket.room);
     io.in(socket.room).emit('message', data);
-  })
-
-  socket.on('bid', function(bid) {
-    socket.broadcast.to(socket.room).emit('event', {player:socket.username, action:'bid', value:bid})
-    room = rooms[socket.room]
-    bids = room.bids.concat([bid])
-    room.bids = bids
-    console.log(bids); 
-    rooms[socket.room] = room
-
-    if (bids.length == room.numPlayers) {
-      socket.emit('requestAction');
-    }
-    else {
-      nextUsername = room.order[bids.length]
-      nextSocket = io.sockets.connected[room.userToSocketId[nextUsername]]
-      if (bids.length == room.numPlayers -1 ) {
-        options = []
-        bid_sum = bids.reduce((a,b) => a+b);
-        for (var i = 0; i <= room.level; i++) {
-          if (i == room.level - bid_sum) {
-            continue
-          }
-          options.push(i)
-        }
-        nextSocket.emit('requestBid', {options: options})
-      }
-      else {
-        nextSocket.emit('requestBid', {options: [...Array(room.level+1).keys()]})
-      }
-    } 
   })
   
 });
