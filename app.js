@@ -46,9 +46,8 @@ app.set('socketio', io);
 const port = 8000;
 server.listen(port);
 
-var users = 0;
 var rooms = {};
-var maxNumPlayers = 2;
+var hosts = {};
 
 io.use(function(socket, next) {
   sessionMiddleware(socket.request, {}, next); 
@@ -68,14 +67,12 @@ io.on('connection', (socket) => {
         var clients = Object.keys(io.sockets.adapter.rooms[data.gameid].sockets);
         var usernames = clients.map((clientId) => (io.sockets.connected[clientId].username));
         if (usernames.includes(user.username)) {
-          console.log('your username is ' + user.username);
-          console.log(usernames);
           socket.emit('joinFail', "You've already joined this room.");
           return;
         }
-        currentNumPlayers = Object.keys(clients).length + 1;
+        currentNumPlayers = clients.length + 1;
       }
-      if (currentNumPlayers > maxNumPlayers) {
+      if (data.gameid in rooms) {
         socket.emit('joinFail', "This game has already started, try joining a different room.");
         return;
       }
@@ -83,21 +80,29 @@ io.on('connection', (socket) => {
       socket.join(data.gameid);
       socket.room = data.gameid;
       socket.username = user.username;
-      console.log('hello i joined')
+      if (currentNumPlayers === 1) {
+        hosts[data.gameid] = socket.username;
+        socket.emit('host');
+      }
       io.in(data.gameid).emit('message', {sender: '', message: user.username + ' joined the room'});
       io.in(data.gameid).emit('currentNumPlayers', currentNumPlayers);
-
-      if (currentNumPlayers === maxNumPlayers) {
-        rooms[data.gameid] = Room(maxNumPlayers);
-        io.in(data.gameid).emit('gameStart');
-      }
     });
   });
+
+  socket.on('startGame', function(data) {
+    console.log('socket username', socket.username)
+    console.log('host username', hosts[socket.room])
+    if (socket.username === hosts[socket.room]) {
+      var numPlayers = Object.keys(io.sockets.adapter.rooms[socket.room].sockets).length;
+
+      rooms[socket.room] = Room(socket.room, numPlayers);
+      io.in(socket.room).emit('gameStart');
+    }
+  })
 
   // helper function to send the next action request
   function sendNextRequest(room) {
     action = room.getActionRequest();
-    console.log(action);
     clientSocket = io.sockets.connected[room.getClientId(action.player)];
     clientSocket.emit(action.type, action.options);
     var actionName = '';
@@ -109,23 +114,25 @@ io.on('connection', (socket) => {
     clientSocket.broadcast.to(clientSocket.room).emit('waiting', {player: action.player, type: actionName});
   }
 
+  function dealCards(room) {
+    room.dealCards();
+    players = room.getPlayers();
+    players.forEach(function(item, index) {
+      hand = room.getHand(item);
+      var clientSocket = io.sockets.connected[room.getClientId(item)];
+      clientSocket.emit('deal', {hand: hand,
+                                 trumpSuit: room.getTrumpSuit(),
+                                 players: players})
+    })
+  }
+
   // check if game should start
   socket.on('gameStart', function(data) {
-
-    console.log('client game start');
     room = rooms[socket.room];
     room.playerReady(socket.username, socket.id);
 
     if (room.hasGameStarted()) {
-      room.dealCards();
-      players = room.getPlayers();
-      players.forEach(function(item, index) {
-        hand = room.getHand(item);
-        var clientSocket = io.sockets.connected[room.getClientId(item)];
-        clientSocket.emit('deal', {hand: hand,
-                                   trumpSuit: room.getTrumpSuit(),
-                                   players: players})
-      })
+      dealCards(room);
       sendNextRequest(room);
     }
   });
@@ -136,74 +143,52 @@ io.on('connection', (socket) => {
 
     responses = room.receiveAction({type:'bid', player:socket.username, value:data});
     responses.forEach(function(item, index) {
-      console.log('response')
-      console.log(item)
       io.in(socket.room).emit(item.type, {player:item.player, value: item.value});
     })
 
     sendNextRequest(room);
   })
+
+  function emitResponsesWithTimeout(responses, room, callback) {
+    if (responses.length === 0) {
+      callback();
+    } else {
+      res = responses[0];
+      io.in(room.getRoomId()).emit(res.type, res);
+      setTimeout(function() {
+        if (res.type === 'winTrick') {
+          io.in(room.getRoomId()).emit('clearTable');
+        }
+        if (res.type === 'roundEnd' && !room.isGameOver()) {
+          dealCards(room);
+        }
+        emitResponsesWithTimeout(responses.slice(1,), room, callback);
+      }, res.timeout)
+    }
+  }
     
   socket.on('play', function(data) {
     room = rooms[socket.room];
 
     responses = room.receiveAction({type:'play', player:socket.username, value:data});
 
-    console.log('responses');
-    console.log(responses);
-
-    // responses.length should be max length 2
-    responses.forEach(function(item, index) {
-      io.in(socket.room).emit(item.type, {player:item.player, value: item.value});
-    })
-
-    if (responses.length > 1) {
-      setTimeout(function() {
-        sendNextRequest(room);
-      }, 3000);
-    } else {
+    emitResponsesWithTimeout(responses, room, function() {
       sendNextRequest(room);
-    }
+    })
   })
 
-    // socket.emit('joinSuccess', usernames);
-
-    
-
-    // socket.broadcast.to(gameid).emit('playerJoined', {player: socket.username});
-
-    // userToSocketId = {}
-    // order = []
-
-    // numClients = Object.keys(clients).length;
-    // console.log(numClients);
-
-    // if (numClients == 3) {
-    //   console.log('at least 3');
-    //   for (var clientId in clients ) {
-    //     var clientSocket = io.sockets.connected[clientId];
-    //     userToSocketId[clientSocket.username] = clientId
-    //     order.push(clientSocket.username)
-    //     clientSocket.emit('deal', {username: clientSocket.username, hand: ['7S'], trump: 'S'});
-    //   }
-    //   room = {level:1, numPlayers:order.length, scores:[0]*order.length, currentTrick: [], bids: [], order:order, userToSocketId:userToSocketId}
-    //   rooms[gameid] = room
-
-    //   firstSocket = io.sockets.connected[userToSocketId[order[0]]];
-    //   firstSocket.emit('requestBid', {options: [...Array(room.level+1).keys()]})
-    //   console.log('requested from ' + order[0])
-    // }
-
   socket.on('disconnecting', function() {
-    var rooms = Object.keys(socket.rooms);
-    rooms.forEach(function(item) {
+    var socketRooms = Object.keys(socket.rooms);
+    socketRooms.forEach(function(item) {
+      if (item in rooms) {
+        delete rooms[item];
+      }
       var clients = io.sockets.adapter.rooms[item].sockets;
       io.in(item).emit('currentNumPlayers', Object.keys(clients).length-1);
     });
   })
 
   socket.on('message', function(data) {
-    console.log(socket.room);
     io.in(socket.room).emit('message', data);
   })
   
