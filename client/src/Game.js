@@ -25,13 +25,21 @@ class ChatBar extends Component {
   }
 
   componentDidMount() {
+    this.scrollToBottom();
     socket.on('message', function(data) {
       this.setState((prevState) => {
         return {messages: prevState.messages.concat(data)};
       });
-      this.refs.messagesEnd.scrollIntoView({ behavior: "smooth" });
     }.bind(this));
   }
+
+  scrollToBottom() {
+    this.refs.messagesEnd.scrollIntoView({ behavior: "smooth" });
+  }
+
+  componentDidUpdate() {
+    this.scrollToBottom();
+}
 
   onTextChange(event) {
     this.setState({textInput: event.target.value});
