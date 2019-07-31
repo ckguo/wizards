@@ -156,7 +156,11 @@ class MemberHome extends Component {
 
   handleCreateGame(event) {
     fetch('/createGame', {
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
     }).then(function(res) {
       return res.json();
     }).then(function(info) {

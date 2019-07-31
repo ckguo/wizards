@@ -5,7 +5,9 @@ export function syncLoginStatus() {
     fetch('/loginStatus', {
       method: 'GET',
       headers: {
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     }).then(function(response) {
       return response.json();
