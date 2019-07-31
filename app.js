@@ -20,10 +20,10 @@ var app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-const connectionString = 'mongodb+srv://picrazy:31415926@cluster0-npp0f.mongodb.net/test';
+const connectionString = 'mongodb+srv://picrazy:31415926@cluster0-npp0f.mongodb.net/test?retryWrites=true&w=majority';
 
 mongoose
-  .connect(connectionString, {useNewUrlParser: false})
+  .connect(connectionString, {useNewUrlParser: true})
   .then(() => console.log("MongoDB successfully connected"))
   .catch(err => console.log(err));
 
