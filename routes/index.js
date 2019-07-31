@@ -19,7 +19,6 @@ router.post('/createGame', function(req, res, next) {
 });
 
 router.post('/loginStatus', function(req, res, next) {
-  console.log(req.session);
   if (req.session.username) {
     res.json({username: req.session.username});
   } else {
@@ -42,8 +41,6 @@ router.post('/signup', function(req, res, next) {
         username: req.body.username,
         password: req.body.password
       });
-      console.log(req.body.username);
-      console.log(req.body.password);
       bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(newUser.password, salt, function(err, hash) {
           if (err) {

@@ -76,7 +76,6 @@ var Room = function(roomId, numPlayers) {
 
   // deals cards to the players in the room
   that.dealCards = function() {
-    console.log('deal cards');
     cards = dealCards(numPlayers, round);
     trumpSuit = pickTrump();
     for (i=0; i<numPlayers; i++) {
