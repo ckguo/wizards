@@ -14,11 +14,11 @@ function makeId(length) {
   return id;
 }
 
-router.get('/createGame', function(req, res, next) {
+router.post('/createGame', function(req, res, next) {
   res.json({gameid: makeId(4)});
 });
 
-router.get('/loginStatus', function(req, res, next) {
+router.post('/loginStatus', function(req, res, next) {
   console.log(req.session);
   if (req.session.username) {
     res.json({username: req.session.username});

@@ -3,9 +3,8 @@ import {LOGIN_SUCCESS, LOGIN_FAILURE, USER_INFO, SIGNUP_FAILURE, CLEAR_ERROR_MES
 export function syncLoginStatus() {
   return dispatch => {
     fetch('/loginStatus', {
-      method: 'GET',
+      method: 'POST', // this is a post request because get requests will go to React Router
       headers: {
-        'Cache-Control': 'no-cache',
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }

@@ -156,7 +156,7 @@ class MemberHome extends Component {
 
   handleCreateGame(event) {
     fetch('/createGame', {
-      method: 'GET',
+      method: 'POST', // this is a post request because get requests will go to React Router
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
