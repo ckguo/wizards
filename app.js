@@ -20,7 +20,7 @@ var app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-const connectionString = 'mongodb+srv://picrazy:31415926@cluster0-npp0f.mongodb.net/test?retryWrites=true&w=majority';
+const connectionString = 'mongodb+srv://picrazy:31415926@cluster0-npp0f.mongodb.net/test';
 
 mongoose
   .connect(connectionString, {useNewUrlParser: false})
