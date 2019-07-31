@@ -50,7 +50,7 @@ var Room = function(roomId, numPlayers) {
   var that = Object.create(Room.prototype);
   var players = {};
   var usernameToClientId = {};
-  var round = 3;
+  var round = 1;
   var trumpSuit = '';
   var playOrder = [];
   var actionOn = '';
@@ -60,8 +60,6 @@ var Room = function(roomId, numPlayers) {
 
   // called for each player when they are ready to start
   that.playerReady = function(username, clientId) {
-    console.log('player ready')
-    console.log(username)
     if (Object.keys(players).length >= numPlayers) {
       console.log('shouldnt happen, too many people in room');
       return;
@@ -74,7 +72,6 @@ var Room = function(roomId, numPlayers) {
     players[username] = player;
     usernameToClientId[username] = clientId;
     playOrder.push(username);
-    console.log(players);
   }
 
   // deals cards to the players in the room
@@ -87,7 +84,6 @@ var Room = function(roomId, numPlayers) {
       player = players[username];
       player.hand = cards[i];
     }
-    console.log(cards);
     starter = playOrder[0];
     actionOn = starter;
   }
@@ -101,14 +97,10 @@ var Room = function(roomId, numPlayers) {
       Object.keys(players).forEach(function(key) {
         item = players[key];
         if (item.username != actionOn) {
-          console.log(item.username)
-          console.log(item.bid)
           currentSum += item.bid;
         }
       })
     }
-    console.log('sum of bids so far');
-    console.log(currentSum)
     for (i=0; i<=round; i++) {
       if (i !== round-currentSum) {
         options.push(i);
@@ -226,6 +218,9 @@ var Room = function(roomId, numPlayers) {
 
   // returns a request for an action
   that.getActionRequest = function() {
+    if (that.isGameOver()) {
+      return;
+    }
     // either requesting a bid or a play
     if (inBidPhase) {
       options = getBidOptions();
@@ -269,8 +264,6 @@ var Room = function(roomId, numPlayers) {
       handCopy.splice(handCopy.indexOf(action.value), 1);
       players[action.player].hand = handCopy;
       cardsInTrick.push(action.value);
-      console.log('cards in trick');
-      console.log(cardsInTrick);
       responses.push({type: 'play', player: action.player, value: action.value, timeout:0})
 
       // if last to play, must determine who won the trick
@@ -288,11 +281,10 @@ var Room = function(roomId, numPlayers) {
           Object.keys(players).forEach(function(key) {
             scores[key] = players[key].score;
           })
-          console.log('scores');
-          console.log(scores);
-          responses.push({type: 'roundEnd', scores: scores, timeout:1000}) //TODO: update scores
-          // update actionOn and playOrder
-          // TODO
+          responses.push({type: 'roundEnd', scores: scores, timeout:1000})
+          starterIndex = (playOrder.indexOf(starter) + 1) % playOrder.length;
+          actionOn = playOrder[starterIndex];
+          playOrder = playOrder.slice(starterIndex, ).concat(playOrder.slice(0, starterIndex));
           round ++;
           inBidPhase = true;
 
@@ -309,7 +301,7 @@ var Room = function(roomId, numPlayers) {
                 winners.push(key);
               }
             }
-            responses.push({type: 'gameOver', scores: scores, winners: winners, timeout:1000})
+            responses.push({type: 'gameOver', scores: scores, winners: winners, timeout:0})
           }
         } else {
           // round is not over but trick is over
@@ -326,12 +318,7 @@ var Room = function(roomId, numPlayers) {
   }
 
   that.hasGameStarted = function() {
-    console.log(players)
-    console.log(Object.keys(players))
-    console.log(Object.keys(players).length)
-    console.log(numPlayers)
     if (Object.keys(players).length === numPlayers) {
-      console.log('yay true')
       return true;
     } else {
       return false;

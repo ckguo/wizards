@@ -9,8 +9,18 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+function makeId(length) {
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  var id = '';
+  for (i=0; i<length; i++) {
+    index = Math.floor(Math.random()*(characters.length));
+    id += characters[index];
+  }
+  return id;
+}
+
 router.get('/createGame', function(req, res, next) {
-  res.json({gameid: 1234});
+  res.json({gameid: makeId(4)});
 });
 
 router.post('/signup', function(req, res, next) {

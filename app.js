@@ -18,7 +18,7 @@ var Room = require('./gameutil');
 var app = express();
 
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
 const connectionString = 'mongodb+srv://picrazy:31415926@cluster0-npp0f.mongodb.net/test?retryWrites=true&w=majority';
 
@@ -90,8 +90,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('startGame', function(data) {
-    console.log('socket username', socket.username)
-    console.log('host username', hosts[socket.room])
     if (socket.username === hosts[socket.room]) {
       var numPlayers = Object.keys(io.sockets.adapter.rooms[socket.room].sockets).length;
 
@@ -103,6 +101,9 @@ io.on('connection', (socket) => {
   // helper function to send the next action request
   function sendNextRequest(room) {
     action = room.getActionRequest();
+    if (action === undefined) {
+      return;
+    }
     clientSocket = io.sockets.connected[room.getClientId(action.player)];
     clientSocket.emit(action.type, action.options);
     var actionName = '';
@@ -149,6 +150,20 @@ io.on('connection', (socket) => {
     sendNextRequest(room);
   })
 
+  function cleanupRoom(roomId) {
+    setTimeout(function() {
+      delete rooms[roomId];
+      if (io.sockets.adapter.rooms[roomId]) {
+        var clients = Object.keys(io.sockets.adapter.rooms[roomId].sockets);
+        clients.forEach(function(item) {
+          if (io.sockets.connected[item]) {
+            io.sockets.connected[item].disconnect();
+          }
+        })
+      }
+    }, 1000);
+  }
+
   function emitResponsesWithTimeout(responses, room, callback) {
     if (responses.length === 0) {
       callback();
@@ -161,6 +176,9 @@ io.on('connection', (socket) => {
         }
         if (res.type === 'roundEnd' && !room.isGameOver()) {
           dealCards(room);
+        }
+        if (res.type === 'gameOver') {
+          cleanupRoom(room.getRoomId());
         }
         emitResponsesWithTimeout(responses.slice(1,), room, callback);
       }, res.timeout)
@@ -181,10 +199,12 @@ io.on('connection', (socket) => {
     var socketRooms = Object.keys(socket.rooms);
     socketRooms.forEach(function(item) {
       if (item in rooms) {
-        delete rooms[item];
+        io.in(item).emit('roomDisconnecting');
+        cleanupRoom(item);
+      } else {
+        var clients = Object.keys(io.sockets.adapter.rooms[item].sockets);
+        io.in(item).emit('currentNumPlayers', clients.length-1);
       }
-      var clients = io.sockets.adapter.rooms[item].sockets;
-      io.in(item).emit('currentNumPlayers', Object.keys(clients).length-1);
     });
   })
 
