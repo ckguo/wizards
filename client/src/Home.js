@@ -170,7 +170,7 @@ class MemberHome extends Component {
   }
 
   render () {
-    if (this.state.redirectGameId != '') {
+    if (this.state.redirectGameId !== '') {
       return <Redirect to={'/game/' + this.state.redirectGameId} />
     }
     return (

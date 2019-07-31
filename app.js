@@ -48,11 +48,12 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 var server = require('http').Server(app);
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT);
+
 var io = require('socket.io')(server);
 app.set('socketio', io);
-
-const port = 8000;
-server.listen(port);
 
 var rooms = {};
 var hosts = {};

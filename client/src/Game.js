@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import {Redirect} from 'react-router';
 
 import openSocket from 'socket.io-client';
 import userIcon from './user_icon.png';
@@ -49,11 +50,11 @@ class ChatBar extends Component {
         </div>
         <div className="chat-body">
           {
-            this.state.messages.map(function(item) {
+            this.state.messages.map(function(item, index) {
               if (item.sender === "") {
-                return <div> <i className='text-muted'> {item.message} </i> </div>
+                return <div key={index}> <i className='text-muted'> {item.message} </i> </div>
               } else {
-                return <div> <b>{item.sender}: </b> {item.message} </div>
+                return <div key={index}> <b>{item.sender}: </b> {item.message} </div>
               }
             })
           }
@@ -93,9 +94,7 @@ class GameLobby extends Component {
       <div className="game-lobby">
         <center>
           <h1> Players in room: </h1>
-          <p>
-            <h1 className="display-1 num-players"> {this.props.currentNumPlayers}</h1>
-          </p>
+          <h1 className="display-1 num-players"> {this.props.currentNumPlayers}</h1>
           {actionDiv}
         </center>
       </div>
@@ -108,10 +107,8 @@ class ErrorScreen extends Component {
     return (
       <div className="game-lobby-error">
         <center>
-          <p>
-            <h1 className=""> Error! </h1>
-          </p>
-          <h3 className='text-white-50'> {this.props.errorMessage} </h3>
+          <h1 className=""> Error! </h1>
+          <h3 className='text-muted'> {this.props.errorMessage} </h3>
         </center>
       </div>
     )
@@ -190,7 +187,7 @@ class PlayAction extends Component {
               handleClick = () => {this.props.handlePlay(item)};
               isClickable = true;
             }
-            return <Card val={item} handlePlay={handleClick} isClickable={isClickable}/>;
+            return <Card val={item} key={item} handlePlay={handleClick} isClickable={isClickable}/>;
           }.bind(this))
         }
         </div>
@@ -226,9 +223,9 @@ class BidAction extends Component {
 }
 
 function WaitingText(props) {
-  var textDiv = <h5 class="text-dark"> <center> {props.text} </center> </h5>
+  var textDiv = <h5 className="text-dark"> <center> {props.text} </center> </h5>
   if (props.waiting) {
-    textDiv = <h5 class="text-muted"> <center> {props.text} </center> </h5>
+    textDiv = <h5 className="text-muted"> <center> {props.text} </center> </h5>
   }
   return (
     <div className="table-center">
@@ -240,7 +237,7 @@ function WaitingText(props) {
 function YourTurnText(props) {
   return (
     <div className="table-center">
-      <h5 class="your-turn-text"> <center> Choose a card below to play: </center> </h5>
+      <h5 className="your-turn-text"> <center> Choose a card below to play: </center> </h5>
     </div>
   )
 }
@@ -248,13 +245,13 @@ function YourTurnText(props) {
 class GameOverModal extends Component {
   constructor(props) {
     super(props);
-    this.state = {show: false};
+    this.state = {show: false, redirect: false};
     this.show = this.show.bind(this);
     this.hide = this.hide.bind(this);
   }
 
   hide () {
-    this.props.history.push('/');
+    this.setState({redirect: true});
   }
 
   show () {
@@ -262,6 +259,9 @@ class GameOverModal extends Component {
   }
 
   render () {
+    if (this.state.redirect) {
+      return <Redirect to={'/'} />
+    }
     var winnerText;
     if (this.props.winners.length === 1) {
       winnerText = this.props.winners[0];
@@ -281,7 +281,7 @@ class GameOverModal extends Component {
           <h5> Scores </h5>
           {
             Object.keys(this.props.scores).map(key => (
-              <div> <b> {key}: </b> {this.props.scores[key]} </div>
+              <div key={key}> <b> {key}: </b> {this.props.scores[key]} </div>
             ))
           }
           <br/>
@@ -320,7 +320,7 @@ class GameHeader extends Component {
           <h3> Scores </h3>
           {
             Object.keys(this.props.scores).map(key => (
-              <div> <h5 className='username-text'> {key}: </h5> {this.props.scores[key]} </div>
+              <div key={key}> <h5 className='username-text'> {key}: </h5> {this.props.scores[key]} </div>
             ))
           }
         </div>
@@ -527,10 +527,10 @@ class GamePlay extends Component {
       <div>
         <GameOverModal ref="gameOverModal" scores={this.state.scores} winners={this.state.winners} {...this.props}/>
         <GameHeader round={this.state.round} trumpSuit={this.state.trumpSuit} scores={this.state.scores} {...this.props}/>
-        <div class="table" ref="table">
+        <div className="table" ref="table">
         {
           playerOffsets.map((item, index) => (
-            <Player username={this.state.players[index+1]}
+            <Player key={index+1} username={this.state.players[index+1]}
                     bid={this.state.bid[this.state.players[index+1]]}
                     made={this.state.made[this.state.players[index+1]]}
                     leftOffset={item[0]} topOffset={item[1]}/>
@@ -538,7 +538,7 @@ class GamePlay extends Component {
         }
         {
           cardOffsets.map((item, index) => (
-            <PlayedCard val={this.state.played[this.state.players[index]]}
+            <PlayedCard key={index} val={this.state.played[this.state.players[index]]}
                         leftOffset={item[0]} topOffset={item[1]}/>
           ))
         }
@@ -559,13 +559,13 @@ class GamePlay extends Component {
 class DisconnectModal extends Component {
   constructor(props) {
     super(props);
-    this.state = {show: false};
+    this.state = {show: false, redirect: false};
     this.show = this.show.bind(this);
     this.hide = this.hide.bind(this);
   }
 
   hide () {
-    this.props.history.push('/');
+    this.setState({redirect: true});
   }
 
   show () {
@@ -573,6 +573,9 @@ class DisconnectModal extends Component {
   }
 
   render () {
+    if (this.state.redirect) {
+      return <Redirect to={'/'} />
+    }
     return (
       <div>
       <Modal show={this.state.show} onHide={this.hide}>
@@ -598,7 +601,11 @@ class DisconnectModal extends Component {
 class Game extends Component {
   constructor (props) {
     super(props);
-    socket = openSocket('http://localhost:8000');
+    if (process.env.NODE_ENV === 'production') {
+      socket = openSocket(window.location.hostname);
+    } else {
+      socket = openSocket('http://localhost:3001');
+    }
     this.state = {joinFail: false,
                   joinErrorMessage: '',
                   gameStarted: false,
