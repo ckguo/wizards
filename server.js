@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var session = require('express-session');
 var passport = require('passport');
+var MongoStore = require('connect-mongo')(session);
 
 var indexRouter = require('./routes/index');
 
@@ -30,6 +31,7 @@ var sessionMiddleware = session({
   secret: 'secret',
   saveUninitialized: true,
   resave: true,
+  store: new MongoStore({ mongooseConnection: mongoose.connection })
 });
 
 app.use(sessionMiddleware);
@@ -44,7 +46,6 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
   })
 }
-
 var server = require('http').Server(app);
 
 const PORT = process.env.PORT || 3001;
