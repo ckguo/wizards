@@ -161,6 +161,7 @@ io.on('connection', (socket) => {
   function cleanupRoom(roomId) {
     setTimeout(function() {
       delete rooms[roomId];
+      delete hosts[roomId];
       if (io.sockets.adapter.rooms[roomId]) {
         var clients = Object.keys(io.sockets.adapter.rooms[roomId].sockets);
         clients.forEach(function(item) {
@@ -212,6 +213,16 @@ io.on('connection', (socket) => {
       } else {
         var clients = Object.keys(io.sockets.adapter.rooms[item].sockets);
         io.in(item).emit('currentNumPlayers', clients.length-1);
+
+        // choose new game host
+        for (clientId of clients) {
+          if (clientId !== socket.id) {
+            newHostSocket = io.sockets.connected[clientId];
+            hosts[item] = newHostSocket.username;
+            newHostSocket.emit('host');
+            break;
+          }
+        }
       }
     });
   })

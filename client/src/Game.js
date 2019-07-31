@@ -93,7 +93,7 @@ class GameLobby extends Component {
       actionDiv = <div>
                     <h5 className='text-muted'> To invite a user to this room, share this page's link. </h5>
                     <br/>
-                    <Button variant= "light" disabled={this.props.currentNumPlayers<=1} onClick= {this.props.handleClick}>
+                    <Button variant= "primary" disabled={this.props.currentNumPlayers<=1} onClick= {this.props.handleClick}>
                       Start Game
                     </Button>
 
