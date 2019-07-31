@@ -8,6 +8,7 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import {Redirect} from 'react-router';
 
+import {syncLoginStatus} from './actions/authActions'
 import openSocket from 'socket.io-client';
 import userIcon from './user_icon.png';
 
@@ -113,12 +114,29 @@ class GameLobby extends Component {
 }
 
 class ErrorScreen extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {redirect: false};
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick() {
+    this.setState({redirect: true});
+  }
+
   render () {
+    if (this.state.redirect) {
+      return <Redirect to='/'/>;
+    }
     return (
       <div className="game-lobby-error">
         <center>
           <h1 className=""> Error! </h1>
           <h3 className='text-muted'> {this.props.errorMessage} </h3>
+          <br/>
+          <Button variant="primary" onClick={this.handleClick}>
+            Return Home
+          </Button>
         </center>
       </div>
     )
@@ -296,7 +314,7 @@ class GameOverModal extends Component {
           }
           <br/>
             <Button variant='primary' onClick={this.hide}>
-              Return to Home
+              Return Home
             </Button>
           </center>
         </Modal.Body>
@@ -598,7 +616,7 @@ class DisconnectModal extends Component {
           <br/>
           <center>
             <Button variant='primary' onClick={this.hide}>
-              Return to Home
+              Return Home
             </Button>
           </center>
         </Modal.Body>
@@ -687,6 +705,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
+    syncLoginStatus: () => dispatch(syncLoginStatus()),
   };
 }
 

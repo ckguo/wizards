@@ -14,8 +14,17 @@ function makeId(length) {
   return id;
 }
 
-router.post('/createGame', function(req, res, next) {
+router.get('/createGame', function(req, res, next) {
   res.json({gameid: makeId(4)});
+});
+
+router.get('/loginStatus', function(req, res, next) {
+  console.log(req.session);
+  if (req.session.username) {
+    res.json({username: req.session.username});
+  } else {
+    res.json({username: ''});
+  }
 });
 
 router.post('/signup', function(req, res, next) {
@@ -68,13 +77,14 @@ router.post('/login', function(req, res, next) {
     }
     req.logIn(user, function(err) {
       if (err) { console.log(err); }
-      console.log(req.session);
+      req.session.username = req.body.username;
       return res.json(user);
     })
   })(req, res, next);
 })
 
 router.post('/logout', function(req, res, next) {
+  req.session.username = '';
   req.logout();
   res.json({});
 })

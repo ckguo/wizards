@@ -10,7 +10,7 @@ const persistConfig = {
   key: 'root',
   storage: storage,
   stateReconciler: autoMergeLevel2,
-  blacklist: ['errorMessage'] // blacklisting username for now
+  blacklist: ['errorMessage']
 }
 
 const pReducer = persistReducer(persistConfig, authReducer);

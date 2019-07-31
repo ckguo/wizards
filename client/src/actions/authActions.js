@@ -1,4 +1,20 @@
-import {LOGIN_SUCCESS, LOGIN_FAILURE, SIGNUP_FAILURE, CLEAR_ERROR_MESSAGE, LOGOUT} from './types';
+import {LOGIN_SUCCESS, LOGIN_FAILURE, USER_INFO, SIGNUP_FAILURE, CLEAR_ERROR_MESSAGE, LOGOUT} from './types';
+
+export function syncLoginStatus() {
+  return dispatch => {
+    fetch('/loginStatus', {
+      method: 'GET',
+    }).then(function(response) {
+      return response.json();
+    }).then(function(res) {
+      var username = '';
+      if (res.username) {
+        username = res.username;
+      }
+      dispatch({type: USER_INFO, username});
+    })
+  }
+}
 
 export function login(username, password) {
   return dispatch => {

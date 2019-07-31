@@ -7,7 +7,7 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import {Redirect} from 'react-router';
 
-import {login, signup, logout, clearErrorMessage} from './actions/authActions'
+import {login, signup, logout, clearErrorMessage, syncLoginStatus} from './actions/authActions'
 import {connect} from 'react-redux';
 
 class LoginModal extends Component {
@@ -156,7 +156,7 @@ class MemberHome extends Component {
 
   handleCreateGame(event) {
     fetch('/createGame', {
-      method: 'POST'
+      method: 'GET'
     }).then(function(res) {
       return res.json();
     }).then(function(info) {
@@ -229,6 +229,11 @@ class GuestHome extends Component {
 
 
 class Home extends Component {
+  constructor(props) {
+    super(props);
+
+    this.props.syncLoginStatus();
+  }
   render () {
     let display;
     if (this.props.username !== "") {
@@ -256,6 +261,7 @@ function mapDispatchToProps(dispatch) {
     login: (username, password) => dispatch(login(username, password)),
     signup: (username, password) => dispatch(signup(username, password)),
     logout: () => dispatch(logout()),
+    syncLoginStatus: () => dispatch(syncLoginStatus()),
     clearErrorMessage: () => dispatch(clearErrorMessage())
   };
 }

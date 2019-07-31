@@ -2,7 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import {BrowserRouter as Router, Route } from 'react-router-dom';
+import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import * as serviceWorker from './serviceWorker';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/lib/integration/react';
@@ -10,15 +10,18 @@ import {persistor, store} from './store';
 
 import Game from './Game';
 import Home from './Home';
-
+import NotFound from './NotFound';
 
 ReactDOM.render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
       <Router>
         <div>
-          <Route exact path = '/' component={Home} />
-          <Route path = '/game/:gameid' component={Game} />
+          <Switch>
+            <Route exact path = '/' component={Home} />
+            <Route path = '/game/:gameid' component={Game} />
+            <Route component={NotFound} />
+          </Switch>
         </div>
       </Router>
     </PersistGate>

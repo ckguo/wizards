@@ -1,4 +1,4 @@
-import {LOGIN_SUCCESS, LOGIN_FAILURE, SIGNUP_FAILURE, LOGOUT, CLEAR_ERROR_MESSAGE} from '../actions/types';
+import {LOGIN_SUCCESS, LOGIN_FAILURE, USER_INFO, SIGNUP_FAILURE, LOGOUT, CLEAR_ERROR_MESSAGE} from '../actions/types';
 
 const initialState = {
   username: '',
@@ -18,6 +18,11 @@ export default function auth(state=initialState, action) {
         ...state,
         errorMessage: action.errorMessage
       };
+    case USER_INFO:
+      return {
+        ...state,
+        username: action.username
+      }
     case SIGNUP_FAILURE:
       return {
         ...state,
