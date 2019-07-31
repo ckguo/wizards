@@ -4,11 +4,6 @@ var User = require('../models/user');
 var bcrypt = require('bcryptjs');
 var passport = require('passport');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
-
 function makeId(length) {
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   var id = '';
