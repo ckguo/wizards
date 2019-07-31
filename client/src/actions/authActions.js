@@ -4,6 +4,9 @@ export function syncLoginStatus() {
   return dispatch => {
     fetch('/loginStatus', {
       method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
     }).then(function(response) {
       return response.json();
     }).then(function(res) {
