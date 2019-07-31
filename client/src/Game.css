@@ -1,6 +1,6 @@
 .sidebar {
   background-color: #f8f9fa;
-  width: 300px;
+  width: 250px;
   top: 0;
   bottom: 0;
   position: absolute;
@@ -11,7 +11,7 @@
   top: 0;
   bottom: 0;
   right: 0;
-  width: 300px;
+  width: 250px;
   position: absolute;
   padding: 20px;
   right-padding: 20px;
@@ -25,14 +25,14 @@
   bottom: 0;
   padding: 20px;
   position: absolute;
-  width: 300px;
+  width: 250px;
 }
 .main {
   background-color: #282c34;
   height: 100vh;
   top: 0;
   bottom: 0;
-  right: 300px;
+  right: 250px;
   left: 0;
   position: absolute;
   color: #f8f9fa;
@@ -92,8 +92,8 @@
   margin-bottom: 10px;
 }
 .card-container {
-  height: 106px;
-  width: 72px;
+  max-height: 106px;
+  max-width: 72px;
   position: relative;
 }
 .card {
@@ -117,16 +117,20 @@
   cursor: pointer;
 }
 .played-card {
-  height: 78px;
-  width: 52px;
+  height: 72px;
+  width: 48px;
 }
 .play-action {
   position: absolute;
   bottom: 4%;
+  margin-left: auto;
+  margin-right: auto;
   left: 50%;
   transform: translateX(-50%);
+  padding-right: 20px;
   color: #282c34;
   min-height: 170px;
+  max-width: 100%;
 }
 .cards {
   display: flex;

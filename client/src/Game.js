@@ -29,6 +29,7 @@ class ChatBar extends Component {
       this.setState((prevState) => {
         return {messages: prevState.messages.concat(data)};
       });
+      this.refs.messagesEnd.scrollIntoView({ behavior: "smooth" });
     }.bind(this));
   }
 
@@ -58,6 +59,7 @@ class ChatBar extends Component {
               }
             })
           }
+          <div ref='messagesEnd'/>
         </div>
         <div className="chat-input">
         <Form onSubmit={this.handleSubmit}>
