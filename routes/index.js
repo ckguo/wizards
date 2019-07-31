@@ -14,7 +14,7 @@ function makeId(length) {
   return id;
 }
 
-router.get('/createGame', function(req, res, next) {
+router.post('/createGame', function(req, res, next) {
   res.json({gameid: makeId(4)});
 });
 

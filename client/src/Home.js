@@ -5,12 +5,10 @@ import Button from 'react-bootstrap/Button';
 import Jumbotron from 'react-bootstrap/Jumbotron'
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
+import {Redirect} from 'react-router';
 
 import {login, signup, logout, clearErrorMessage} from './actions/authActions'
 import {connect} from 'react-redux';
-
-// import openSocket from 'socket.io-client';
-// const socket = openSocket('http://localhost:8000');
 
 class LoginModal extends Component {
   constructor(props) {
@@ -153,15 +151,17 @@ class MemberHome extends Component {
     super(props);
     this.handleCreateGame = this.handleCreateGame.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
+    this.state = {redirectGameId: ''};
   }
 
   handleCreateGame(event) {
     fetch('/createGame', {
-      method: 'GET'
+      method: 'POST'
     }).then(function(res) {
       return res.json();
     }).then(function(info) {
-      this.props.history.push('/game/' + info.gameid);
+      // this.props.history.push('/game/' + info.gameid);
+      this.setState({redirectGameId: info.gameid});
     }.bind(this))
   }
 
@@ -170,6 +170,9 @@ class MemberHome extends Component {
   }
 
   render () {
+    if (this.state.redirectGameId != '') {
+      return <Redirect to={'/game/' + this.state.redirectGameId} />
+    }
     return (
       <Jumbotron>
         <h1 className="display-1"> Wizards.io </h1>
