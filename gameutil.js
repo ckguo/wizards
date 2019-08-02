@@ -19,8 +19,8 @@ function randInt(min, max) {
 }
 
 function pickTrump() {
-  var idx = randInt(0, 5)
-  var suits = ['d', 'c', 'h', 's', 'NT'];
+  var idx = randInt(0, 9)
+  var suits = ['d', 'd', 'c', 'c', 'h', 'h', 's', 's', 'NT'];
   return suits[idx];
 };
 
